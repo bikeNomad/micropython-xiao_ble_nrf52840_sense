@@ -1,0 +1,15 @@
+/delete-node/ &storage_partition;
+
+// 16Mib (2MiB) flash
+&p25q16h {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		storage_partition: partition@0 {
+			label = "ExtStorage";
+			reg = <0x00000000 0x200000>;
+		};
+	};
+};
