@@ -16,7 +16,7 @@ not have to be in the `ports/zephyr` directory. Assuming you have cloned this bo
 repository into your home directory, you can build the Zephyr port
 for a xiao_ble_nrf42840_sense board like this:
 
-    $ west build -b xiao_ble_nrf42840_sense ~/micropython-xiao_ble_nrf42840_sense/zephyr
+    $ west build -b xiao_ble/nrf52840/sense ~/micropython-xiao_ble_nrf52840_sense/zephyr
 
 Running
 -------
