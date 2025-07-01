@@ -1,13 +1,22 @@
 MicroPython port to Zephyr RTOS for the Seeed Studio XIAO BLE NRF52840 Sense board
 ===============================
 
+Initializing your build environment
+--------
+    $ git submodule update
+    $ cd submodules/micropython
+    $ git submodule update --init lib/micropython-lib
+    $ cd ../../zephyr
+
+Building
+--------
 Once Zephyr is ready to use you can build this MicroPython port just like any
 other Zephyr application. You can do this anywhere in your file system, it does
 not have to be in the `ports/zephyr` directory. Assuming you have cloned this board port
 repository into your home directory, you can build the Zephyr port
 for a xiao_ble_nrf42840_sense board like this:
 
-    $ west build -b xiao_ble_nrf42840_sense ~/micropython-xiao_ble_nrf42840_sense
+    $ west build -b xiao_ble_nrf42840_sense ~/micropython-xiao_ble_nrf42840_sense/zephyr
 
 Running
 -------
