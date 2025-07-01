@@ -24,6 +24,19 @@ Running
 To flash the resulting firmware to your board, press the RESET button two times and copy
 `build/zephyr/zephyr.uf2` to the XIAO_BLE drive presented by the board.
 
+Peripheral names
+----------------
+
+led0 = &led0;
+led1 = &led1;
+led2 = &led2;
+pwm-led0 = &pwm_led0;
+bootloader-led0 = &led0;
+mcuboot-led0 = &led0;
+watchdog0 = &wdt0;
+    
+lsm6ds3tr_c: name of LSM6DS3TR-C sensor on i2c0
+
 Quick example
 -------------
 
@@ -73,28 +86,4 @@ Example of using SPI to write a buffer to the MOSI pin:
     spi = SPI("spi0")
     spi.init(baudrate=500000, polarity=1, phase=1, bits=8, firstbit=SPI.MSB)
     spi.write(b'abcd')
-
-
-Minimal build
--------------
-
-MicroPython is committed to maintain minimal binary size for Zephyr port
-below 128KB, as long as Zephyr project is committed to maintain stable
-minimal size of their kernel (which they appear to be). Note that at such
-size, there is no support for any Zephyr features beyond REPL over UART,
-and only very minimal set of builtin Python modules is available. Thus,
-this build is more suitable for code size control and quick demonstrations
-on smaller systems. It's also suitable for careful enabling of features
-one by one to achieve needed functionality and code size. This is in the
-contrast to the "default" build, which may get more and more features
-enabled over time.
-
-To make a minimal build:
-
-    $ west build -b qemu_x86 ~/micropython/ports/zephyr -- -DCONF_FILE=prj_minimal.conf
-
-To run a minimal build in QEMU without requiring TAP networking setup
-run the following after you built an image with the previous command:
-
-    $ west build -t run
 

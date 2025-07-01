@@ -87,6 +87,8 @@
 #endif
 #define MICROPY_PY_BLUETOOTH_ENABLE_GATT_CLIENT (0)
 #endif
+
+#define MICROPY_PY_BUILTINS_HELP_MODULES (1)
 #define MICROPY_PY_BINASCII         (1)
 #define MICROPY_PY_HASHLIB          (1)
 #define MICROPY_PY_OS               (1)
