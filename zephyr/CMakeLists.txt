@@ -67,6 +67,7 @@ set(MICROPY_SOURCE_SHARED
     runtime/pyexec.c
     runtime/stdout_helpers.c
     timeutils/timeutils.c
+    runtime/sys_stdio_mphal.c
 )
 list(TRANSFORM MICROPY_SOURCE_SHARED PREPEND ${MICROPY_DIR}/shared/)
 
