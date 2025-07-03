@@ -1,27 +1,26 @@
 import sys
 sys.path.append("lib")
 
-from time import ticks_us
-from machine import I2C, Pin
+from micropython import const
 import asyncio
 from asyncio import sleep_ms
-
+from time import ticks_us
+from machine import I2C, Pin
+from primitives import Delay_ms
+import aiorepl
 import lsm6ds
+
 i2c = I2C("i2c0")
 lsm = lsm6ds.LSM6DS3(i2c, mode=0x5C) # 208Hz, FS=4g
-# lsm.set_hp_filter(0b0100_0100) # ODR/9 = 208/9 = 23Hz, digital HPF
-# lsm.set_hp_filter(0b0000_0100) # ODR/4 = 208/4 = 52Hz, slope filter
 blue_led = Pin(('gpio0',6), Pin.OUT)
 blue_led.value(1)
+flash_delay = Delay_ms(Pin.on, (blue_led, ), duration=100)
 
-def flash_led(ms=100):
-    async def flashit():
-        blue_led.value(0)
-        await sleep_ms(ms)
-        blue_led.value(1)
-    asyncio.create_task(flashit())
+def flash_led():
+    blue_led.value(0)
+    flash_delay.trigger()
 
-THRESHOLD=10000
+THRESHOLD=const(10000)
 
 async def test_accel(n):
     started = ticks_us()
@@ -41,4 +40,6 @@ async def test_accel(n):
 
 
 def ta(n):
-    asyncio.run(test_accel(n))
+    asyncio.create_task(test_accel(n))
+
+asyncio.run(aiorepl.task())

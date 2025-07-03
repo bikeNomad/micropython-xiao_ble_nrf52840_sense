@@ -39,6 +39,31 @@
 // We can't guarantee object layout of nlr code so use long jump by default.
 #define MICROPY_NLR_THUMB_USE_LONG_JUMP (1)
 
+#if 0
+// Trying to get @micropython.native to work...
+#define MICROPY_EMIT_THUMB (1)
+#define MICROPY_EMIT_INLINE_THUMB (1)
+
+#if MICROPY_EMIT_MACHINE_CODE
+// On nRF52, the physical SRAM is mapped to 0x20000000 for data access and 0x00800000
+// for instruction access.  So convert addresses to make them executable.
+#define MICROPY_PERSISTENT_CODE_TRACK_FUN_DATA (1)
+#define MICROPY_PERSISTENT_CODE_TRACK_BSS_RODATA (0)
+#define MICROPY_MAKE_POINTER_CALLABLE(p) ((void *)(((uintptr_t)(p) - 0x20000000 + 0x00800000) | 1))
+static inline void *nrf_native_code_commit(void *buf, unsigned int len, void *reloc) {
+    (void)len;
+    if (reloc) {
+        // Native code in RAM must execute from the IRAM region at 0x00800000, and so relocations
+        // to text must also point to this region.  The MICROPY_MAKE_POINTER_CALLABLE macro will
+        // adjust the `buf` address from RAM to IRAM.
+        mp_native_relocate(reloc, buf, (uintptr_t)MICROPY_MAKE_POINTER_CALLABLE(buf) & ~1);
+    }
+    return buf;
+}
+#define MP_PLAT_COMMIT_EXEC(buf, len, reloc) nrf_native_code_commit(buf, len, reloc)
+#endif
+#endif
+
 #define MICROPY_PERSISTENT_CODE_LOAD (1)
 #define MICROPY_ENABLE_FINALISER (MICROPY_VFS)
 #define MICROPY_ENABLE_GC (1)
