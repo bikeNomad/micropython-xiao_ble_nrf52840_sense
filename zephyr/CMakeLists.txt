@@ -66,10 +66,15 @@ set(MICROPY_SOURCE_SHARED
     runtime/mpirq.c
     runtime/pyexec.c
     runtime/stdout_helpers.c
-    timeutils/timeutils.c
     runtime/sys_stdio_mphal.c
+    timeutils/timeutils.c
 )
 list(TRANSFORM MICROPY_SOURCE_SHARED PREPEND ${MICROPY_DIR}/shared/)
+
+set(MICROPY_QSTRDEFS_PORT
+    ${MICROPY_PORT_DIR}/qstrdefsport.h
+)
+
 
 set(MICROPY_SOURCE_LIB
     oofatfs/ff.c
