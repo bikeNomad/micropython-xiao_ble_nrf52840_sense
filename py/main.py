@@ -28,7 +28,7 @@ def white_led_off():
     green_led.value(1)
     red_led.value(1)
 
-flash_delay = Delay_ms(white_led_off, (,), duration=100)
+flash_delay = Delay_ms(white_led_off, (()), duration=100)
 
 def flash_led():
     white_led_on()
