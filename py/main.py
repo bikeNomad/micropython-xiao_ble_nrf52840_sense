@@ -9,15 +9,29 @@ from machine import I2C, Pin
 from primitives import Delay_ms
 import aiorepl
 import lsm6ds
+from xiao_ble_nrf52840 import BLUE_LED_PIN, RED_LED_PIN, GREEN_LED_PIN,
 
 i2c = I2C("i2c0")
-lsm = lsm6ds.LSM6DS3(i2c, mode=0x5C) # 208Hz, FS=4g
-blue_led = Pin(('gpio0',6), Pin.OUT)
-blue_led.value(1)
-flash_delay = Delay_ms(Pin.on, (blue_led, ), duration=100)
+lsm = lsm6ds.LSM6DS3(i2c, mode=0x4C) # 208Hz, FS=4g
+
+blue_led = Pin(BLUE_LED_PIN, Pin.OUT, value=1)
+green_led = Pin(GREEN_LED_PIN, Pin.OUT, value=1)
+red_led = Pin(RED_LED_PIN, Pin.OUT, value=1)
+
+def white_led_on():
+    blue_led.value(0)
+    green_led.value(0)
+    red_led.value(0)
+
+def white_led_off():
+    blue_led.value(1)
+    green_led.value(1)
+    red_led.value(1)
+
+flash_delay = Delay_ms(white_led_off, (,), duration=100)
 
 def flash_led():
-    blue_led.value(0)
+    white_led_on()
     flash_delay.trigger()
 
 THRESHOLD=const(10000)
