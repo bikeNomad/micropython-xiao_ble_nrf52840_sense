@@ -85,6 +85,9 @@
 #define MICROPY_PY_OS (1)
 #define MICROPY_PY_RANDOM (1)
 #define MICROPY_PY_RANDOM_EXTRA_FUNCS (1) // for random.uniform
+#define MICROPY_PY_RE (1)
+#define MICROPY_PY_RE_MATCH_GROUPS (1)
+#define MICROPY_PY_RE_SPAN_START_END (1)
 #define MICROPY_PY_SELECT (1)
 #define MICROPY_PY_SYS_MODULES (1)
 #define MICROPY_PY_SYS_STDFILES (1)

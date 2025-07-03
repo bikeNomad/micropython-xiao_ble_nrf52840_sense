@@ -1,3 +1,6 @@
 [submodule "submodules/micropython"]
 	path = submodules/micropython
 	url = https://github.com/micropython/micropython.git
+[submodule "submodules/micropython-async"]
+	path = submodules/micropython-async
+	url = https://github.com/peterhinch/micropython-async
