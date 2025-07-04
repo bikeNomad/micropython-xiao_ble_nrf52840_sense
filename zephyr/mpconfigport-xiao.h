@@ -214,3 +214,9 @@ typedef long mp_off_t;
     k_msleep(1);                                                               \
   } while (0);
 #endif
+
+#define MICROPY_HW_ENABLE_ADC (1)
+#define MICROPY_PY_MACHINE_ADC (1)
+#define MICROPY_PY_MACHINE_ADC_INCLUDEFILE "ports/zephyr/machine_adc.c"
+#define MICROPY_PY_MACHINE_ADC_READ (1)
+#define MICROPY_PY_MACHINE_ADC_READ_UV (1)
