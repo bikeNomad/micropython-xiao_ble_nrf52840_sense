@@ -52,18 +52,18 @@ if HAS_ADC:
     # 1M / 512k divider
     BATTERY_V_SCALE = const(1512/512/1000)
 
-    def read_battery_mv() -> int:
+    def battery_mv() -> int:
         read_bat_pin = Pin(READ_BAT_PIN, Pin.OUT, value=0)
         adc = ADC(AIN7_BAT_PIN)
         val = adc.read_uv()
         read_bat_pin.init(Pin.IN)  # High-Z
         return int(val * BATTERY_V_SCALE)
 else:
-    def read_battery_mv() -> int:
+    def battery_mv() -> int:
         return 0
 
 
-def battery_is_charging() -> bool:
+def is_battery_charging() -> bool:
     return Pin(CHG_N_PIN, Pin.IN).value() == 0
 
 
