@@ -5,22 +5,20 @@ and an external LED triggered by the D0 pin going HIGH.
 """
 
 from micropython import const
-from asyncio import sleep_ms, create_task
+from asyncio import sleep_ms
 from time import ticks_us
 from machine import I2C, Pin
 from primitives import Delay_ms
 import lsm6ds
-from xiao_ble_nrf52840 import BLUE_LED_PIN, RED_LED_PIN, GREEN_LED_PIN, D0_PIN
-
-i2c = I2C("i2c0")
-lsm = lsm6ds.LSM6DS3(i2c, mode=lsm6ds.NORMAL_MODE_104HZ | 0b0000_1000) # 104Hz, FS=4g
+from xiao_ble import BLUE_LED_PIN, RED_LED_PIN, GREEN_LED_PIN, D0_PIN
 
 blue_led = Pin(BLUE_LED_PIN, Pin.OUT, value=1)
 green_led = Pin(GREEN_LED_PIN, Pin.OUT, value=1)
 red_led = Pin(RED_LED_PIN, Pin.OUT, value=1)
 external_white_led = Pin(D0_PIN, Pin.OUT, value=0)
 
-FLASH_DURATION = const(100) # ms
+DEFAULT_THRESHOLD = 10000
+DEFAULT_DURATION = 100 # ms
 NO_ARGS = const(())
 
 def white_led_on():
@@ -35,15 +33,10 @@ def white_led_off():
     red_led.value(1)
     external_white_led.value(0)
 
-flash_delay = Delay_ms(white_led_off, NO_ARGS, duration=FLASH_DURATION)
-
-def flash_led():
-    white_led_on()
-    flash_delay.trigger()
-
-THRESHOLD=const(10000)
-
-async def run():
+async def task(threshold=DEFAULT_THRESHOLD, duration=DEFAULT_DURATION):
+    flash_delay = Delay_ms(white_led_off, NO_ARGS, duration=duration)
+    i2c = I2C("i2c0")
+    lsm = lsm6ds.LSM6DS3(i2c, mode=lsm6ds.NORMAL_MODE_104HZ | 0b0000_1000) # 104Hz, FS=4g
     started = ticks_us()
     lastx = 0
     adr = lsm.accel_data_ready  # cache
@@ -54,12 +47,11 @@ async def run():
         data = gar()
         now = ticks_us()
         dx = abs(data[0] - lastx)
-        if dx > THRESHOLD:
-            flash_led()
+        if dx > threshold:
+            white_led_on()
+            flash_delay.trigger()
             print("*", end='')
         lastx = data[0]
         vals = [now-started, data[0], data[1], data[2], dx]
         print(','.join(map(str, vals)))
         await sleep_ms(1)
-
-task = create_task(run())
