@@ -19,9 +19,11 @@ install_asyncio_primitives:
 	mpremote mip install github:peterhinch/micropython-async/v3/primitives
  	mpremote mip install github:peterhinch/micropython-async/v3/threadsafe
 
-$(BUILT_UF2):
+clean:
+	rm -rf $(PORT_DIR)/build
+
+$(BUILT_UF2): clean
 	cd $(PORT_DIR) && \
-	rm -rf build && \
 	west build -b xiao_ble/nrf52840/sense .
 
 format_filesystem:
@@ -30,3 +32,6 @@ format_filesystem:
 flash: $(BUILT_UF2)
 	-cp $(BUILT_UF2) /Volumes/XIAO_SENSE
 	sleep 5
+
+program_bootloader:
+	nrfjprog -f NRF52 --program $(HERE)/xiao_nrf52840_ble_sense_bootloader-0.9.2_s140_7.3.0.hex --recover --verify

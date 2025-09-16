@@ -1,9 +1,9 @@
 """
 Utility functions for the Seeed Studio XIAO BLE NRF52840 SENSE board.
 """
-
 from machine import Pin
 from micropython import const
+
 HAS_ADC = False
 try:
     from machine import ADC
@@ -50,7 +50,7 @@ if HAS_ADC:
     # Internal
     AIN7_BAT_PIN = const(('adc', 7))
     # 1M / 512k divider
-    BATTERY_V_SCALE = const(1512/512/1000)
+    BATTERY_V_SCALE = (1512/512/1000)
 
     def battery_mv() -> int:
         read_bat_pin = Pin(READ_BAT_PIN, Pin.OUT, value=0)
@@ -68,6 +68,13 @@ def is_battery_charging() -> bool:
 
 
 def charge_current_high(hi: bool):
+    """
+    Set the charging current for the battery.
+    
+    Args:
+        hi (bool): If True, set charging current to high (100mA).
+                   If False, set charging current to low (50mA).
+    """
     if hi:
         Pin(HICHG_PIN, Pin.OUT, value=0)
     else:
