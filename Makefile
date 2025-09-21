@@ -22,9 +22,8 @@ install_asyncio_primitives:
 clean:
 	rm -rf $(PORT_DIR)/build
 
-$(BUILT_UF2): clean
-	cd $(PORT_DIR) && \
-	west build -b xiao_ble/nrf52840/sense .
+$(BUILT_UF2):
+	cd $(PORT_DIR) && west build -b xiao_ble/nrf52840/sense .
 
 format_filesystem:
 	mpremote run $(SRC_DIR)/make_vfs.py
@@ -34,4 +33,7 @@ flash: $(BUILT_UF2)
 	sleep 5
 
 program_bootloader:
-	nrfjprog -f NRF52 --program $(HERE)/xiao_nrf52840_ble_sense_bootloader-0.9.2_s140_7.3.0.hex --recover --verify
+	nrfjprog -f NRF52 --program $(HERE)/xiao_nrf52840_ble_sense_bootloader-0.9.2_s140_7.3.0.hex --recover --verify --reset
+
+erase:
+	nrfjprog -f NRF52 --qspieraseall --eraseall
