@@ -7,19 +7,22 @@ and an external LED triggered by the D0 pin going HIGH.
 from micropython import const
 from asyncio import sleep_ms
 from time import ticks_us
-from machine import I2C, Pin
+from machine import I2C, Pin, lightsleep
 from primitives import Delay_ms
 import lsm6ds
-from xiao_ble import BLUE_LED_PIN, RED_LED_PIN, GREEN_LED_PIN, D0_PIN
+from xiao_ble import BLUE_LED_PIN, RED_LED_PIN, GREEN_LED_PIN, D0_PIN, ACCEL_INT_PIN
 
 blue_led = Pin(BLUE_LED_PIN, Pin.OUT, value=1)
 green_led = Pin(GREEN_LED_PIN, Pin.OUT, value=1)
 red_led = Pin(RED_LED_PIN, Pin.OUT, value=1)
 external_white_led = Pin(D0_PIN, Pin.OUT, value=0)
+interrupt_pin = Pin(ACCEL_INT_PIN, Pin.IN)
 
-DEFAULT_THRESHOLD = 10000
-DEFAULT_DURATION = 100 # ms
+DEFAULT_THRESHOLD_MG = 750
+DEFAULT_DURATION = 100  # ms
+DURATION_SAMPLES = 3
 NO_ARGS = const(())
+
 
 def white_led_on():
     blue_led.value(0)
@@ -27,31 +30,55 @@ def white_led_on():
     red_led.value(0)
     external_white_led.value(1)
 
+
 def white_led_off():
     blue_led.value(1)
     green_led.value(1)
     red_led.value(1)
     external_white_led.value(0)
 
-async def task(threshold=DEFAULT_THRESHOLD, duration=DEFAULT_DURATION):
-    flash_delay = Delay_ms(white_led_off, NO_ARGS, duration=duration)
+
+async def task(threshold=DEFAULT_THRESHOLD_MG, duration=DEFAULT_DURATION):
     i2c = I2C("i2c0")
-    lsm = lsm6ds.LSM6DS3(i2c, mode=lsm6ds.NORMAL_MODE_104HZ | 0b0000_1000) # 104Hz, FS=4g
-    started = ticks_us()
-    lastx = 0
-    adr = lsm.accel_data_ready  # cache
-    gar = lsm.get_accel_readings  # cache
-    while True:
-        while not adr():
-            await sleep_ms(0)
-        data = gar()
-        now = ticks_us()
-        dx = abs(data[0] - lastx)
-        if dx > threshold:
+    lsm = lsm6ds.LSM6DS3(
+        i2c, accel_mode=lsm6ds.NORMAL_MODE_104HZ, gyro_mode=lsm6ds.POWER_DOWN
+    )
+    lsm.accel_fs_g = 4
+    if threshold > lsm.accel_fs_g * 1000:
+        print(f"warning: threshold {threshold}mg exceeds max {lsm.accel_fs_g * 1000}mg")
+        threshold = lsm.accel_fs_g * 1000
+
+    lsm.set_wakeup_threshold(threshold, duration_samples=DURATION_SAMPLES)
+    lsm.enable_wakeup_interrupt(True)
+    interrupt_occurred = False
+    flash_delay = Delay_ms(white_led_off, NO_ARGS, duration=duration)
+    wus = lsm.wakeup_sources  # cache
+    xwu = lsm.X_WU  # cache
+
+    def motion_callback(pin):
+        nonlocal interrupt_occurred, flash_delay
+        nonlocal wus, xwu
+        interrupt_occurred = True
+        if wus() & xwu:
             white_led_on()
             flash_delay.trigger()
-            print("*", end='')
-        lastx = data[0]
-        vals = [now-started, data[0], data[1], data[2], dx]
-        print(','.join(map(str, vals)))
-        await sleep_ms(1)
+
+    interrupt_pin.irq(trigger=Pin.IRQ_RISING, handler=motion_callback)
+    print("Monitoring started.")
+    try:
+        while True:
+            if interrupt_occurred:
+                interrupt_occurred = False
+
+                if lsm.wakeup_detected():
+                    wake_source = wus()
+                    print(f"Wake-up detected: {wake_source:b}")
+
+            lightsleep(10000)
+
+    except KeyboardInterrupt:
+        # clean up
+        lsm.enable_wakeup_interrupt(False)
+        interrupt_pin.irq(trigger=Pin.IRQ_RISING, handler=None)
+        white_led_off()
+        print("Monitoring stopped.")
