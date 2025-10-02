@@ -42,7 +42,7 @@ endif
 
 all: $(BUILT_UF2) copy_mpy
 
-copy_mpy: format_filesystem install_asyncio_primitives
+copy_mpy: install_asyncio_primitives
 	mpremote cp $(SOURCE_PY) : + \
 	cp $(LIB_PY) :lib
 

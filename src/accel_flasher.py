@@ -4,11 +4,9 @@ When the X acceleration value changes by more than THRESHOLD, flash both the on-
 and an external LED triggered by the D0 pin going HIGH.
 """
 
+from time import sleep_ms
 from micropython import const
-from asyncio import sleep_ms
-from time import ticks_us
 from machine import I2C, Pin, lightsleep
-from primitives import Delay_ms
 import lsm6ds
 from xiao_ble import BLUE_LED_PIN, RED_LED_PIN, GREEN_LED_PIN, D0_PIN, ACCEL_INT_PIN
 
@@ -18,9 +16,9 @@ red_led = Pin(RED_LED_PIN, Pin.OUT, value=1)
 external_white_led = Pin(D0_PIN, Pin.OUT, value=0)
 interrupt_pin = Pin(ACCEL_INT_PIN, Pin.IN)
 
-DEFAULT_THRESHOLD_MG = 750
+DEFAULT_THRESHOLD_MG = 500
 DEFAULT_DURATION = 100  # ms
-DURATION_SAMPLES = 3
+DURATION_SAMPLES = 2    # 19ms
 NO_ARGS = const(())
 
 
@@ -38,7 +36,7 @@ def white_led_off():
     external_white_led.value(0)
 
 
-async def task(threshold=DEFAULT_THRESHOLD_MG, duration=DEFAULT_DURATION):
+def run(threshold=DEFAULT_THRESHOLD_MG, duration=DEFAULT_DURATION, duration_samples=DURATION_SAMPLES):
     i2c = I2C("i2c0")
     lsm = lsm6ds.LSM6DS3(
         i2c, accel_mode=lsm6ds.NORMAL_MODE_104HZ, gyro_mode=lsm6ds.POWER_DOWN
@@ -48,20 +46,20 @@ async def task(threshold=DEFAULT_THRESHOLD_MG, duration=DEFAULT_DURATION):
         print(f"warning: threshold {threshold}mg exceeds max {lsm.accel_fs_g * 1000}mg")
         threshold = lsm.accel_fs_g * 1000
 
-    lsm.set_wakeup_threshold(threshold, duration_samples=DURATION_SAMPLES)
+    lsm.set_wakeup_threshold(threshold, duration_samples=duration_samples)
     lsm.enable_wakeup_interrupt(True)
     interrupt_occurred = False
-    flash_delay = Delay_ms(white_led_off, NO_ARGS, duration=duration)
     wus = lsm.wakeup_sources  # cache
-    xwu = lsm.X_WU  # cache
+    xwu = lsm6ds.X_WU  # cache
 
     def motion_callback(pin):
-        nonlocal interrupt_occurred, flash_delay
+        nonlocal interrupt_occurred
         nonlocal wus, xwu
         interrupt_occurred = True
         if wus() & xwu:
             white_led_on()
-            flash_delay.trigger()
+            sleep_ms(duration)
+            white_led_off()
 
     interrupt_pin.irq(trigger=Pin.IRQ_RISING, handler=motion_callback)
     print("Monitoring started.")
