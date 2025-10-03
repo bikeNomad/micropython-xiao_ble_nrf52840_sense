@@ -68,6 +68,7 @@ program_bootloader:
 
 # Erase both MCU and external QSPI flash
 erase:
+	nrfjprog device recover
 	nrfjprog -f NRF52 --qspieraseall --eraseall
 
 print_variables:
